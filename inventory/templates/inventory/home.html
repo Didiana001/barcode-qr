@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Didiana's Inventory System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .table {
+            margin-top: 20px;
+        }
+        .btn-custom {
+            width: 150px;
+            margin: 0 10px;
+        }
+        .video-container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        video {
+            width: 300px;
+            height: 200px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <div class="header">
+            <h1>Didiana's Inventory System</h1>
+            <button id="qr-button" class="btn btn-primary btn-custom">Scan QR Code</button>
+            <button id="barcode-button" class="btn btn-danger btn-custom">Scan Barcode</button>
+        </div>
+
+        <!-- Video element to display camera stream -->
+        <div class="video-container">
+            <video id="video" autoplay></video>
+        </div>
+
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Product Name</th>
+                    <th>Type of Code Scanned</th>
+                    <th>Code</th>
+                    <th>Date Added</th>
+                </tr>
+            </thead>
+            <tbody id="product-table">
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.code_type }}</td>
+                    <td>{{ product.barcode }}</td>
+                    <td>{{ product.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const codeReader = new ZXing.BrowserQRCodeReader();
+
+        // Start QR Code scanning
+        $('#qr-button').click(() => {
+            codeReader.decodeOnceFromVideoDevice(null, 'video').then((result) => {
+                $.post("{% url 'add_product' %}", {
+                    name: 'Product Name',  // Replace with logic to extract product name
+                    barcode: result.text,
+                    code_type: 'QR',  // Indicating the type of code scanned
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                }).done(() => {
+                    location.reload();
+                });
+            }).catch((err) => {
+                console.error(err);
+            });
+        });
+
+        // Start Barcode scanning
+        $('#barcode-button').click(() => {
+            codeReader.decodeOnceFromVideoDevice(null, 'video').then((result) => {
+                $.post("{% url 'add_product' %}", {
+                    name: 'Product Name',  // Replace with logic to extract product name
+                    barcode: result.text,
+                    code_type: 'Barcode',  // Indicating the type of code scanned
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                }).done(() => {
+                    location.reload();
+                });
+            }).catch((err) => {
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>
